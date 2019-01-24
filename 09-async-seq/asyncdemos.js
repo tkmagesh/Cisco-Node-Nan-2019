@@ -106,6 +106,7 @@ function exec(fns){
 		first(next);
 	}
 }
+
 function runAsync(){
 	exec(asyncFns);
 }

@@ -8,7 +8,7 @@ function isStatic(resourceName){
 	return staticExtns.indexOf(resExtn) >= 0;
 }
 
-module.exports = function(req, res){
+module.exports = function(req, res, next){
 	var resourceName = req.pathname === '/' ? '/index.html' : req.pathname;
 
 	//serving requests for static resources
@@ -22,6 +22,10 @@ module.exports = function(req, res){
 		}
 		var stream = fs.createReadStream(resourceFullName);
 		stream.pipe(res);
-		return;
+		stream.on('end', function(){
+			next();
+		});
+	} else {
+		next();
 	}
 }
