@@ -20,34 +20,38 @@ router.get('/:id', function(req, res, next){
 
 router.post('/', function(req, res, next){
 	var taskData = req.body;
-	taskService.addNew(taskData, function(err, newTask){
-		if (err){
+	taskService
+		.addNew(taskData)
+		.then(function(newTask){
+			res.status(201).json(newTask);
+		})
+		.catch(function(err){
 			res.status(500).end();
-		} else {
-			res.status(201).json(newTask);		
-		}
-	});
-	
+		});	
 });
 
 router.put('/:id', function(req, res, next){
-	try{
-		var updatedTask = taskService.save(parseInt(req.params.id), req.body);
-		res.json(updatedTask)
-	} catch (err){
-		res.status(404).end();
-	}
+	taskService
+		.save(parseInt(req.params.id), req.body)
+		.then(function(updatedTask){
+			res.json(updatedTask)
+		})
+		.catch(function(err){
+			res.status(404).end();	
+		});
 	
 });
 
 
 router.delete('/:id', function(req, res, next){
-	try{
-		var result = taskService.remove(req.params.id);
-		res.json(result);
-	} catch (err){
-		res.status(404).end();	
-	}
+	taskService
+		.remove(req.params.id)
+		.then(function(result){
+			res.json(result);
+		})
+		.catch(function(err){
+			res.status(404).end();		
+		});
 });
 
 

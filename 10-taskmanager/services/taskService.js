@@ -3,13 +3,19 @@ var taskDb = require('./taskDb');
 var taskList = [];
 
 function init(){
-	taskDb.read(function(err, tasks){
+	/*taskDb.read(function(err, tasks){
 		if (err){
 			throw err;
 		} else {
 			taskList = tasks;
 		}
-	});
+	});*/
+
+	taskDb
+		.read()
+		.then(function(tasks){
+			taskList = tasks;
+		});
 }
 
 function getAll(){
@@ -22,19 +28,16 @@ function get(id){
 	});
 }
 
-function addNew(taskData, callback){ 
+function addNew(taskData){ 
 	taskData.id = taskList.reduce(function(result, task){
 		return result > task.id ? result : task.id;
 	},0) + 1;
 	taskList.push(taskData);
-	taskDb.write(taskList, function(err){
-		if (err){
-			return callback(err);
-		} else {
-			return callback(null, taskData);
-		}
-	})
-
+	return taskDb
+		.write(taskList)
+		.then(function(){
+			return taskData;
+		})
 }
 
 function save(id, taskData){
@@ -42,10 +45,14 @@ function save(id, taskData){
 		return task.id === parseInt(id);
 	});
 	if (!taskToUpdate){
-		throw new Error('task not found');
+		return Promise.reject(new Error('task not found'));
 	}
 	Object.assign(taskToUpdate, taskData);
-	return taskToUpdate;
+	return taskDb
+		.write(taskList)
+		.then(function(){
+			return taskToUpdate;
+		})
 }
 
 function remove(id){
@@ -53,12 +60,12 @@ function remove(id){
 		return task.id === parseInt(id);
 	});
 	if (!taskToRemove){
-		throw new Error('task not found')
+		return Promise.reject(new Error('task not found'));
 	}
 	taskList = taskList.filter(function(task){
 		return task.id !== parseInt(id);
 	});
-	return {};
+	return taskDb.write(taskList);
 }
 
 module.exports = {
