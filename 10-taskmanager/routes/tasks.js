@@ -1,19 +1,16 @@
 var express = require('express');
 var router = express.Router();
+var taskService = require('../services/taskService');
 
-var taskList = [
-	{id : 1, name : 'Learn JavaScript', isClosed : false},
-	{id : 2, name : 'Explore Bangalore', isClosed : true},
-];
+taskService.init();
 
 router.get('/', function(req, res, next){
-	res.json(taskList);
+	var tasks = taskService.getAll();
+	res.json(tasks);
 });
 
 router.get('/:id', function(req, res, next){
-	var result = taskList.find(function(task){
-		return task.id === parseInt(req.params.id);
-	});
+	var result = taskService.get(req.params.id);
 	if (result){
 		res.json(result);
 	} else {
@@ -23,11 +20,34 @@ router.get('/:id', function(req, res, next){
 
 router.post('/', function(req, res, next){
 	var taskData = req.body;
-	taskData.id = taskList.reduce(function(result, task){
-		return result > task.id ? result : task.id;
-	},0) + 1;
-	taskList.push(taskData);
-	res.status(201).json(taskData);
+	taskService.addNew(taskData, function(err, newTask){
+		if (err){
+			res.status(500).end();
+		} else {
+			res.status(201).json(newTask);		
+		}
+	});
+	
+});
+
+router.put('/:id', function(req, res, next){
+	try{
+		var updatedTask = taskService.save(parseInt(req.params.id), req.body);
+		res.json(updatedTask)
+	} catch (err){
+		res.status(404).end();
+	}
+	
+});
+
+
+router.delete('/:id', function(req, res, next){
+	try{
+		var result = taskService.remove(req.params.id);
+		res.json(result);
+	} catch (err){
+		res.status(404).end();	
+	}
 });
 
 
